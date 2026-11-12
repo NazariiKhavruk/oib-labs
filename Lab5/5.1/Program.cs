@@ -1,59 +1,119 @@
+using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-Console.OutputEncoding = Encoding.UTF8;
-Console.InputEncoding = Encoding.UTF8;
-
-// Завдання 1: зашифровування та розшифровування DES, Triple-DES, AES.
-// Ключ та вектор ініціалізації генеруються випадково.
-
-while (true)
+namespace Lab5_1
 {
-    Console.WriteLine();
-    Console.WriteLine("Алгоритм: 1 - DES, 2 - Triple-DES, 3 - AES, 0 - вихід");
-    Console.Write("Оберіть: ");
-    string? choice = Console.ReadLine();
-    if (choice == "0") return;
+    class Program
+    {
+        static void Main()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            string originalText = "Сьогодні гарна погода";
 
-    using SymmetricAlgorithm? alg = choice switch
-    {
-        "1" => DES.Create(),
-        "2" => TripleDES.Create(),
-        "3" => Aes.Create(),
-        _ => null
-    };
-    if (alg == null)
-    {
-        Console.WriteLine("Невірний вибір.");
-        continue;
+            Console.WriteLine($"Оригінальний текст\n{originalText}\n");
+
+            // Алгоритм DES: ключ 8 байт, IV 8 байт
+            Console.WriteLine("Алгоритм DES");
+            using (DES des = DES.Create())
+            {
+                byte[] key = GenerateRandomBytes(8);
+                byte[] iv = GenerateRandomBytes(8);
+
+                byte[] encrypted = Encrypt(originalText, key, iv, des);
+                string decrypted = Decrypt(encrypted, key, iv, des);
+
+                PrintResult(key, iv, encrypted, decrypted);
+            }
+
+            // Алгоритм Triple-DES: ключ 24 байти, IV 8 байт
+            Console.WriteLine("Алгоритм Triple-DES");
+            using (TripleDES tdes = TripleDES.Create())
+            {
+                byte[] key = GenerateRandomBytes(24);
+                byte[] iv = GenerateRandomBytes(8);
+
+                byte[] encrypted = Encrypt(originalText, key, iv, tdes);
+                string decrypted = Decrypt(encrypted, key, iv, tdes);
+
+                PrintResult(key, iv, encrypted, decrypted);
+            }
+
+            // Алгоритм AES: ключ 32 байти, IV 16 байт
+            Console.WriteLine("Алгоритм AES");
+            using (Aes aes = Aes.Create())
+            {
+                byte[] key = GenerateRandomBytes(32);
+                byte[] iv = GenerateRandomBytes(16);
+
+                byte[] encrypted = Encrypt(originalText, key, iv, aes);
+                string decrypted = Decrypt(encrypted, key, iv, aes);
+
+                PrintResult(key, iv, encrypted, decrypted);
+            }
+
+            Console.ReadLine();
+        }
+
+        // Криптостійка випадкова послідовність байтів (для ключа та IV)
+        static byte[] GenerateRandomBytes(int length)
+        {
+            byte[] randomBytes = new byte[length];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            return randomBytes;
+        }
+
+        // Зашифровування
+        static byte[] Encrypt(string plainText, byte[] key, byte[] iv, SymmetricAlgorithm algorithm)
+        {
+            algorithm.Key = key;
+            algorithm.IV = iv;
+
+            ICryptoTransform encryptor = algorithm.CreateEncryptor(algorithm.Key, algorithm.IV);
+
+            using (MemoryStream msEncrypt = new MemoryStream())
+            {
+                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                    {
+                        swEncrypt.Write(plainText);
+                    }
+                    return msEncrypt.ToArray();
+                }
+            }
+        }
+
+        // Розшифровування
+        static string Decrypt(byte[] cipherText, byte[] key, byte[] iv, SymmetricAlgorithm algorithm)
+        {
+            algorithm.Key = key;
+            algorithm.IV = iv;
+
+            ICryptoTransform decryptor = algorithm.CreateDecryptor(algorithm.Key, algorithm.IV);
+
+            using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+            {
+                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                {
+                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                    {
+                        return srDecrypt.ReadToEnd();
+                    }
+                }
+            }
+        }
+
+        static void PrintResult(byte[] key, byte[] iv, byte[] encrypted, string decrypted)
+        {
+            Console.WriteLine($"Ключ         : {Convert.ToBase64String(key)}");
+            Console.WriteLine($"Вектор (IV)  : {Convert.ToBase64String(iv)}");
+            Console.WriteLine($"Зашифровано  : {Convert.ToBase64String(encrypted)}");
+            Console.WriteLine($"Розшифровано : {decrypted}\n");
+        }
     }
-
-    // Випадкові ключ та IV (GenerateKey/GenerateIV використовують криптостійкий генератор)
-    alg.GenerateKey();
-    alg.GenerateIV();
-
-    Console.Write("Введіть текст для шифрування: ");
-    string text = Console.ReadLine() ?? "";
-
-    byte[] plain = Encoding.UTF8.GetBytes(text);
-    byte[] encrypted = Encrypt(alg, plain);
-    byte[] decrypted = Decrypt(alg, encrypted);
-
-    Console.WriteLine($"Алгоритм:        {alg.GetType().BaseType?.Name ?? alg.GetType().Name} ({alg.KeySize} біт ключ, {alg.BlockSize} біт блок)");
-    Console.WriteLine($"Ключ:            {Convert.ToHexString(alg.Key)}");
-    Console.WriteLine($"IV:              {Convert.ToHexString(alg.IV)}");
-    Console.WriteLine($"Шифротекст:      {Convert.ToHexString(encrypted)}");
-    Console.WriteLine($"Розшифровано:    {Encoding.UTF8.GetString(decrypted)}");
-}
-
-static byte[] Encrypt(SymmetricAlgorithm alg, byte[] data)
-{
-    using ICryptoTransform encryptor = alg.CreateEncryptor();
-    return encryptor.TransformFinalBlock(data, 0, data.Length);
-}
-
-static byte[] Decrypt(SymmetricAlgorithm alg, byte[] data)
-{
-    using ICryptoTransform decryptor = alg.CreateDecryptor();
-    return decryptor.TransformFinalBlock(data, 0, data.Length);
 }
