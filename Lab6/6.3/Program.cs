@@ -36,7 +36,7 @@ namespace Lab6_3
 
                     case "2":
                         Console.Write("Файл відкритого ключа отримувача (.xml): ");
-                        string keyPath = Console.ReadLine() ?? "";
+                        string keyPath = (Console.ReadLine() ?? "").Trim().Trim('"');
                         if (!File.Exists(keyPath))
                         {
                             Console.WriteLine("Файл не знайдено.");
@@ -89,8 +89,9 @@ namespace Lab6_3
 
         static string ReadOrDefault(string defaultValue)
         {
-            string? input = Console.ReadLine();
-            return string.IsNullOrWhiteSpace(input) ? defaultValue : input;
+            // Прибираємо пробіли та лапки (Windows "Копіювати як шлях" додає лапки)
+            string input = (Console.ReadLine() ?? "").Trim().Trim('"');
+            return input == "" ? defaultValue : input;
         }
 
         // Генерація ключів у контейнері та збереження відкритого ключа у файл

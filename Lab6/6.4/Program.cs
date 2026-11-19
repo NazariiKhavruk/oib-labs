@@ -54,7 +54,7 @@ namespace Lab6_4
         static void SendGreeting()
         {
             Console.Write("Файл відкритого ключа студента (наприклад Shkonda.xml): ");
-            string keyPath = Console.ReadLine() ?? "";
+            string keyPath = (Console.ReadLine() ?? "").Trim().Trim('"');
             if (!File.Exists(keyPath))
             {
                 Console.WriteLine("Файл не знайдено.");
@@ -80,7 +80,13 @@ namespace Lab6_4
         static void ReadGreeting()
         {
             Console.Write("Шлях до файлу .dat або текст Base64: ");
-            string input = (Console.ReadLine() ?? "").Trim();
+            // Прибираємо пробіли та лапки (Windows "Копіювати як шлях" додає лапки)
+            string input = (Console.ReadLine() ?? "").Trim().Trim('"');
+            if (input == "")
+            {
+                Console.WriteLine("Нічого не введено.");
+                return;
+            }
 
             byte[] chipherBytes;
             try
