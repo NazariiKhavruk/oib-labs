@@ -14,7 +14,7 @@ namespace Lab7_1
         static void Main()
         {
             Console.OutputEncoding = Encoding.UTF8;
-            string message = "Сьогодні гарна погода";
+            string message = "Сьогодні чудова погода";
 
             // Генеруємо ключі у контейнері та зберігаємо відкритий ключ у файл
             GenerateOwnKeys(PublicKeyPath);
