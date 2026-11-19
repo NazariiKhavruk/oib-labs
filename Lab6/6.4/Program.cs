@@ -9,7 +9,7 @@ namespace Lab6_4
     {
         // Окремий контейнер, щоб секретний ключ не загубився, поки чекаю вітання від інших
         private readonly static string CspContainerName = "KhavrukContainer";
-        // Ім'я файлу - транслітерація прізвища (Хаврук)
+        // Ім'я файлу - транслітерація прізвища
         private readonly static string PublicKeyPath = "Khavruk.xml";
 
         static void Main()
@@ -20,17 +20,17 @@ namespace Lab6_4
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine($"1. Згенерувати ключ RSA 2048 біт та зберегти відкритий ключ у {PublicKeyPath}");
-                Console.WriteLine("2. Зашифрувати вітання для студента (його файл .xml)");
-                Console.WriteLine("3. Розшифрувати отримане вітання (файл .dat або текст Base64)");
+                Console.WriteLine($"1. Створити ключі ({PublicKeyPath})");
+                Console.WriteLine("2. Зашифрувати вітання");
+                Console.WriteLine("3. Розшифрувати вітання");
                 Console.WriteLine("0. Вихід");
-                Console.Write("Оберіть дію: ");
+                Console.Write("Дія: ");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
                         GenerateOwnKeys(PublicKeyPath);
-                        Console.WriteLine($"Відкритий ключ збережено: {Path.GetFullPath(PublicKeyPath)}");
+                        Console.WriteLine($"Відкритий ключ: {Path.GetFullPath(PublicKeyPath)}");
                         break;
 
                     case "2":
@@ -51,37 +51,41 @@ namespace Lab6_4
             }
         }
 
+        // Прибираємо пробіли та лапки (Windows "Копіювати як шлях" додає лапки)
+        static string ReadPath()
+        {
+            return (Console.ReadLine() ?? "").Trim().Trim('"');
+        }
+
         static void SendGreeting()
         {
-            Console.Write("Файл відкритого ключа студента (наприклад Shkonda.xml): ");
-            string keyPath = (Console.ReadLine() ?? "").Trim().Trim('"');
+            Console.Write("Ключ отримувача (.xml): ");
+            string keyPath = ReadPath();
             if (!File.Exists(keyPath))
             {
                 Console.WriteLine("Файл не знайдено.");
                 return;
             }
 
-            Console.Write("Текст вітання (Enter - стандартне): ");
+            Console.Write("Текст (Enter - стандартний): ");
             string? text = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(text))
-                text = "Привіт! Вітання від Назарія Хаврука";
+                text = "Привіт! Вітаю з лабораторною з RSA";
 
-            // Ім'я файлу: Khavruk_to_Shkonda.dat
+            // Ім'я файлу: To_<ім'я ключа отримувача>.dat
             string receiver = Path.GetFileNameWithoutExtension(keyPath);
-            string cipherPath = $"Khavruk_to_{receiver}.dat";
+            string cipherPath = $"To_{receiver}.dat";
 
             EncryptData(keyPath, Encoding.UTF8.GetBytes(text), cipherPath);
 
-            Console.WriteLine($"Вітання для {receiver} зашифровано.");
-            Console.WriteLine($"Файл: {Path.GetFullPath(cipherPath)}");
-            Console.WriteLine($"Base64 (можна вставити в чат):\n{Convert.ToBase64String(File.ReadAllBytes(cipherPath))}");
+            Console.WriteLine($"Збережено: {Path.GetFullPath(cipherPath)}");
+            Console.WriteLine($"Base64:\n{Convert.ToBase64String(File.ReadAllBytes(cipherPath))}");
         }
 
         static void ReadGreeting()
         {
-            Console.Write("Шлях до файлу .dat або текст Base64: ");
-            // Прибираємо пробіли та лапки (Windows "Копіювати як шлях" додає лапки)
-            string input = (Console.ReadLine() ?? "").Trim().Trim('"');
+            Console.Write("Файл .dat або Base64: ");
+            string input = ReadPath();
             if (input == "")
             {
                 Console.WriteLine("Нічого не введено.");
@@ -95,18 +99,18 @@ namespace Lab6_4
             }
             catch (FormatException)
             {
-                Console.WriteLine("Це не файл і не текст Base64.");
+                Console.WriteLine("Файл не знайдено.");
                 return;
             }
 
             try
             {
                 byte[] plain = DecryptData(chipherBytes);
-                Console.WriteLine($"Отримане вітання: {Encoding.UTF8.GetString(plain)}");
+                Console.WriteLine($"Вітання: {Encoding.UTF8.GetString(plain)}");
             }
             catch (CryptographicException)
             {
-                Console.WriteLine("Не вдалося розшифрувати: вітання зашифроване не моїм відкритим ключем.");
+                Console.WriteLine("Не розшифровано: зашифровано не моїм ключем.");
             }
         }
 

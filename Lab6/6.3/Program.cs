@@ -18,42 +18,42 @@ namespace Lab6_3
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine("1. Згенерувати ключі та зберегти відкритий ключ у файл");
-                Console.WriteLine("2. Зашифрувати повідомлення відкритим ключем із файлу");
-                Console.WriteLine("3. Розшифрувати повідомлення своїм секретним ключем");
-                Console.WriteLine("4. Видалити ключі з контейнера");
+                Console.WriteLine("1. Створити ключі");
+                Console.WriteLine("2. Зашифрувати повідомлення");
+                Console.WriteLine("3. Розшифрувати повідомлення");
+                Console.WriteLine("4. Видалити ключі");
                 Console.WriteLine("0. Вихід");
-                Console.Write("Оберіть дію: ");
+                Console.Write("Дія: ");
 
                 switch (Console.ReadLine())
                 {
                     case "1":
-                        Console.Write("Файл для відкритого ключа (Enter - public_key.xml): ");
+                        Console.Write("Файл ключа (Enter - public_key.xml): ");
                         string publicKeyPath = ReadOrDefault("public_key.xml");
                         GenerateOwnKeys(publicKeyPath);
-                        Console.WriteLine($"Відкритий ключ збережено: {Path.GetFullPath(publicKeyPath)}");
+                        Console.WriteLine($"Відкритий ключ: {Path.GetFullPath(publicKeyPath)}");
                         break;
 
                     case "2":
-                        Console.Write("Файл відкритого ключа отримувача (.xml): ");
+                        Console.Write("Ключ отримувача (.xml): ");
                         string keyPath = (Console.ReadLine() ?? "").Trim().Trim('"');
                         if (!File.Exists(keyPath))
                         {
                             Console.WriteLine("Файл не знайдено.");
                             break;
                         }
-                        Console.Write("Повідомлення: ");
+                        Console.Write("Текст: ");
                         string message = Console.ReadLine() ?? "";
-                        Console.Write("Файл для шифротексту (Enter - message.dat): ");
+                        Console.Write("Зберегти в (Enter - message.dat): ");
                         string cipherPath = ReadOrDefault("message.dat");
 
                         EncryptData(keyPath, Encoding.UTF8.GetBytes(message), cipherPath);
                         Console.WriteLine($"Зашифровано: {Convert.ToBase64String(File.ReadAllBytes(cipherPath))}");
-                        Console.WriteLine($"Збережено у файл: {Path.GetFullPath(cipherPath)}");
+                        Console.WriteLine($"Збережено: {Path.GetFullPath(cipherPath)}");
                         break;
 
                     case "3":
-                        Console.Write("Файл із шифротекстом (Enter - message.dat): ");
+                        Console.Write("Файл .dat (Enter - message.dat): ");
                         string path = ReadOrDefault("message.dat");
                         if (!File.Exists(path))
                         {
@@ -68,13 +68,13 @@ namespace Lab6_3
                         catch (CryptographicException)
                         {
                             // Повідомлення зашифроване не нашим відкритим ключем
-                            Console.WriteLine("Не вдалося розшифрувати: повідомлення зашифроване іншим ключем.");
+                            Console.WriteLine("Не розшифровано: зашифровано не моїм ключем.");
                         }
                         break;
 
                     case "4":
                         DeleteKeyInCsp();
-                        Console.WriteLine("Ключі видалено з контейнера.");
+                        Console.WriteLine("Ключі видалено.");
                         break;
 
                     case "0":
