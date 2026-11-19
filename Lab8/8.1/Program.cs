@@ -13,10 +13,10 @@ namespace Lab8_1
             Console.InputEncoding = Encoding.UTF8;
 
             // Реєстрація чотирьох користувачів з різними ролями
-            Protector.Register("Alice", "Pa$$w0rd", new[] { "Admins" });
-            Protector.Register("Bob", "Pa$$w0rd", new[] { "Admins", "Sales" });
-            Protector.Register("Charlie", "Pa$$w0rd", new[] { "Sales" });
-            Protector.Register("Eve", "Pa$$w0rd");
+            Protector.Register("Alice", "password", new[] { "Admins" });
+            Protector.Register("Bob", "password", new[] { "Admins", "Sales" });
+            Protector.Register("Charlie", "password", new[] { "Sales" });
+            Protector.Register("Eve", "password");
 
             Console.WriteLine("Зареєстровано: Alice (Admins), Bob (Admins, Sales), Charlie (Sales), Eve (без ролей)");
 
